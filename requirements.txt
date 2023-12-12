@@ -1,0 +1,7 @@
+better_automation==2.0.2
+eth_account==0.10.0
+fake_useragent==1.4.0
+loguru==0.7.2
+Requests==2.31.0
+tqdm==4.66.1
+web3==6.11.4
