@@ -25,7 +25,15 @@ Pass trusta humanity & media attestation for Linea.
 4. **Configure the Application**
 
    - Open the `settings.py` file in the project directory.
-   - You can configure Linea max gwei and sleep between transactions  
+   - You can configure:
+     - Linea max gwei
+     - Sleep between transactions
+     - Attestation types
+
+## Abilities
+
+- Waits for desired Linea gwei and perform the transaction in low gas
+- Creates report at the end of the run indicating which accounts passed and which failed 
 
 ## Running the Application
 

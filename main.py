@@ -3,7 +3,7 @@ import random
 import sys
 from loguru import logger
 from Trusta import Trusta
-from settings import SLEEP_BETWEEN_ATTESTATIONS
+from settings import SLEEP_BETWEEN_ATTESTATIONS, ATTESTATION_TYPES
 from utils import Utils
 
 with open('data/tokens.txt', 'r') as file:
@@ -35,10 +35,11 @@ async def main():
             'key': key,
             'auth_token': token,
         }
-        attestation_types = ['media', 'humanity']
-        random.shuffle(attestation_types)
+
+        random.shuffle(ATTESTATION_TYPES)
+
         try:
-            for attest_type in attestation_types:
+            for attest_type in ATTESTATION_TYPES:
                 res['attest_type'] = attest_type
                 await trusta.attest(attest_type)
                 res['status'] = "SUCCESS"
