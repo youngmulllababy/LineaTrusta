@@ -33,7 +33,8 @@ Pass trusta humanity & media attestation for Linea.
 ## Abilities
 
 - Waits for desired Linea gwei and perform the transaction in low gas
-- Creates report at the end of the run indicating which accounts passed and which failed 
+- Creates report at the end of the run indicating which accounts passed and which failed
+- Will not do on chain transaction if already did
 
 ## Running the Application
 
