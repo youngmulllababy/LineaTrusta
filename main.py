@@ -5,6 +5,7 @@ from loguru import logger
 
 import settings
 from Trusta import Trusta
+from config import SUCCESS_ICON, FAIL_ICON
 from settings import SLEEP_BETWEEN_ATTESTATIONS, ATTESTATION_TYPES
 from utils import Utils
 
@@ -32,7 +33,8 @@ async def main():
         random.shuffle(indexes)
 
     for i, index in enumerate(indexes):
-        logger.info(f'account {i}/{len(tokens)}')
+        tg_messages = []
+        logger.info(f'account {i+1}/{len(tokens)}')
         token = tokens[index]
         key = private_keys[index]
         proxy = None
@@ -51,14 +53,20 @@ async def main():
             for attest_type in ATTESTATION_TYPES:
                 res['attest_type'] = attest_type
                 await trusta.attest(attest_type)
+                tg_messages.append(
+                    f"[{SUCCESS_ICON}][{i+1}/{len(tokens)}][{trusta.address}]\nCompleted {attest_type} attestation")
                 res['status'] = "SUCCESS"
                 Utils.write_to_csv(res)
                 Utils.sleeping(*SLEEP_BETWEEN_ATTESTATIONS)
         except Exception as e:
+            tg_messages.append(
+                f"[{FAIL_ICON}][{i + 1}/{len(tokens)}][{trusta.address}]\nfailed {attest_type} attestation")
             res['status'] = 'FAILURE'
             Utils.write_to_csv(res)
             logger.error(f'failed white trying to complete {attest_type} attestation - {e}')
             Utils.sleeping(1, 10)
+        finally:
+            Utils.send_msg(tg_messages)
 
 
 if __name__ == '__main__':

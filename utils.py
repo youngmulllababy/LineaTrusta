@@ -2,10 +2,10 @@ import csv
 import json
 import random
 import time
-
+from requests import post
 from loguru import logger
 from tqdm import tqdm
-
+import telebot
 import settings
 
 
@@ -41,3 +41,16 @@ class Utils:
                     return True
                 logger.warning(f'[•] Proxy | Change IP error: {r.text} | {r.status_code} {r.reason}')
                 Utils.sleeping(10,10)
+
+    @staticmethod
+    def send_msg(messages):
+        try:
+            if messages and settings.TG_BOT_TOKEN \
+                    and settings.TG_USER_ID:
+                messages.insert(0, 'Linea - Week 6 (Trusta)')
+                str_send = '\n'.join(messages)
+                bot = telebot.TeleBot(settings.TG_BOT_TOKEN)
+                bot.send_message(settings.TG_USER_ID, str_send, parse_mode='html')
+        except Exception as error:
+            logger.error(error)
+
