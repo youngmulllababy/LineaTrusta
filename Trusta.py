@@ -35,6 +35,7 @@ class Trusta:
         self.account = self.w3.eth.account.from_key(private_key)
         self.address = self.account.address
         if proxy:
+            Utils.change_ip(self.session)
             self.proxy = {'http': f'http://{proxy}', 'https': f'http://{proxy}'}
             self.session.proxies.update(self.proxy)
         else:

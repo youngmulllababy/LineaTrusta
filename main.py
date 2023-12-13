@@ -2,18 +2,20 @@ import asyncio
 import random
 import sys
 from loguru import logger
+
+import settings
 from Trusta import Trusta
 from settings import SLEEP_BETWEEN_ATTESTATIONS, ATTESTATION_TYPES
 from utils import Utils
 
 with open('data/tokens.txt', 'r') as file:
-    tokens = [i.strip() for i in file]
+    tokens = [row.strip() for row in file if not row.isspace()]
 
 with open('data/private_keys.txt', 'r') as file:
-    private_keys = [i.strip() for i in file]
+    private_keys = [row.strip() for row in file if not row.isspace()]
 
 with open('data/proxies.txt', 'r') as file:
-    proxies = [i.strip() for i in file]
+    proxies = [row.strip() for row in file if not row.isspace()]
 
 
 def set_windows_event_loop_policy():
@@ -25,7 +27,14 @@ set_windows_event_loop_policy()
 
 
 async def main():
-    for i, (token, key) in enumerate(zip(tokens, private_keys)):
+    indexes = list(range(len(tokens)))
+    if settings.SHUFFLE_WALLETS:
+        random.shuffle(indexes)
+
+    for i, index in enumerate(indexes):
+        logger.info(f'account {i}/{len(tokens)}')
+        token = tokens[index]
+        key = private_keys[index]
         proxy = None
         if proxies:
             proxy = proxies[i % len(proxies)]
