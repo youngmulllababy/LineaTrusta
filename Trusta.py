@@ -88,14 +88,25 @@ class Trusta:
     def get_attestation_calldata(self, attest_type):
         response = self.session.get('https://mp.trustalabs.ai/accounts/attest_calldata', params={'attest_type': attest_type})
         json_response = response.json()
-        return json_response['data']['calldata']['data'], json_response['data']['calldata']['value']
+        return json_response['data']
 
     def is_attestation_minted(self, attest_type):
         response = self.session.get('https://mp.trustalabs.ai/accounts/attestation', params={'attest_type': attest_type})
         total_minted = response.json()['data']['total']
         return total_minted != 0
 
+    def is_allowed_to_mint(self, attest_type, data):
+        user_score = data['message']['score']
+        min_score = config.ATTESTATION_MIN_SCORE[attest_type]
+        allowed_to_mint = user_score >= min_score
+        return user_score, min_score, allowed_to_mint
+
+
     def mint_attestation(self, attest_type):
+        data = self.get_attestation_calldata(attest_type=attest_type)
+        user_score, min_score, allowed_to_mint = self.is_allowed_to_mint(attest_type, data)
+        if not allowed_to_mint:
+            raise Exception(f'wallet does not meet minimum criteria for mint - {user_score} < {min_score}')
         self.wait_for_linea_gwei()
         logger.info(f'[{self.address}][{self.auth_token}] starting to mint attestation {attest_type}')
         abi = Utils.load_abi()
