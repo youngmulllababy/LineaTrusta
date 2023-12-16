@@ -61,6 +61,8 @@ async def main():
             except Exception as e:
                 tg_messages.append(
                     f"[{FAIL_ICON}][{i + 1}/{len(tokens)}][{trusta.address}]\nfailed {attest_type} attestation\nreason: {e}")
+                if 'skip to next account' in str(e):
+                    break
                 res['status'] = str(e)
                 Utils.write_to_csv(res)
                 logger.error(f'failed white trying to complete {attest_type} attestation - {e}')

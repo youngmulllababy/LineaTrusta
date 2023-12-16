@@ -102,8 +102,10 @@ class Trusta:
         allowed_to_mint = min_score <= user_score <= max_score
         return user_score, min_score, allowed_to_mint
 
-
     def mint_attestation(self, attest_type):
+        humanity_data = self.get_attestation_calldata(attest_type='humanity')
+        if not self.is_allowed_to_mint('humanity', humanity_data):
+            raise Exception('cant mint humanity due to low score, skip to next account')
         data = self.get_attestation_calldata(attest_type=attest_type)
         user_score, min_score, allowed_to_mint = self.is_allowed_to_mint(attest_type, data)
         if not allowed_to_mint:
