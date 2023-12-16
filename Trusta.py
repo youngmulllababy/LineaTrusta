@@ -97,8 +97,9 @@ class Trusta:
 
     def is_allowed_to_mint(self, attest_type, data):
         user_score = data['message']['score']
-        min_score = config.ATTESTATION_MIN_SCORE[attest_type]
-        allowed_to_mint = user_score >= min_score
+        min_score = config.ATTESTATION_SCORE[attest_type][0]
+        max_score = config.ATTESTATION_SCORE[attest_type][1]
+        allowed_to_mint = min_score <= user_score <= max_score
         return user_score, min_score, allowed_to_mint
 
 
@@ -106,7 +107,7 @@ class Trusta:
         data = self.get_attestation_calldata(attest_type=attest_type)
         user_score, min_score, allowed_to_mint = self.is_allowed_to_mint(attest_type, data)
         if not allowed_to_mint:
-            raise Exception(f'wallet does not meet minimum criteria for mint - {user_score} < {min_score}')
+            raise Exception(f'wallet does not meet minimum criteria for mint - \nuser_score: {user_score}\n min_score: {config.ATTESTATION_SCORE[0]}\n max_score: {config.ATTESTATION_SCORE[1]}')
         self.wait_for_linea_gwei()
 
         calldata = data['calldata']['data']
@@ -183,30 +184,33 @@ class Trusta:
         code_challenge = parsed_data['code_challenge'][0]
 
         account = TwitterAccount(self.auth_token)
+        try:
+            async with TwitterClient(account, proxy=self.proxy['http'], verify=False) as twitter:
+                bind_data = {
+                    'response_type': 'code',
+                    'client_id': 'REdOWXBKeUh3aThXV2RTNnlBMm46MTpjaQ',
+                    'redirect_uri': 'https://mp.trustalabs.ai/twitter/callback',
+                    'scope': 'tweet.read users.read follows.read offline.access',
+                    'state': state,
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': 'plain'
+                }
 
-        async with TwitterClient(account, proxy=self.proxy['http'], verify=False) as twitter:
-            bind_data = {
-                'response_type': 'code',
-                'client_id': 'REdOWXBKeUh3aThXV2RTNnlBMm46MTpjaQ',
-                'redirect_uri': 'https://mp.trustalabs.ai/twitter/callback',
-                'scope': 'tweet.read users.read follows.read offline.access',
+                bind_code = await twitter.bind_app(**bind_data)
+
+            url = 'https://mp.trustalabs.ai/twitter/twitter_auth_callback'
+            params = {
                 'state': state,
-                'code_challenge': code_challenge,
-                'code_challenge_method': 'plain'
+                'code': bind_code
             }
-
-            bind_code = await twitter.bind_app(**bind_data)
-
-        url = 'https://mp.trustalabs.ai/twitter/twitter_auth_callback'
-        params = {
-            'state': state,
-            'code': bind_code
-        }
-        r = self.session.get(url, params=params)
-        if r.status_code == 200:
-            logger.success(f'[{self.address}][{self.auth_token}] twitter bind success')
-        else:
-            raise Exception('error while binding twitter')
+            r = self.session.get(url, params=params)
+            if r.status_code == 200:
+                logger.success(f'[{self.address}][{self.auth_token}] twitter bind success')
+            else:
+                raise Exception('error while binding twitter')
+        except Exception as e:
+            reason = str(e)
+            raise Exception(f'[twitter_bind] - {reason}')
 
     def trusta_auth(self):
         message = 'Please sign this message to confirm you are the owner of this address and Sign in to TrustGo App'
