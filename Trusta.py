@@ -108,14 +108,17 @@ class Trusta:
         if not allowed_to_mint:
             raise Exception(f'wallet does not meet minimum criteria for mint - {user_score} < {min_score}')
         self.wait_for_linea_gwei()
-        logger.info(f'[{self.address}][{self.auth_token}] starting to mint attestation {attest_type}')
+
+        calldata = data['calldata']['data']
+        value = data['calldata']['value']
         abi = Utils.load_abi()
+
+        logger.info(f'[{self.address}][{self.auth_token}] starting to mint attestation {attest_type}')
 
         contract = self.w3.eth.contract(
             address=self.w3.to_checksum_address(config.TRUSTA_ATTESTATION_CONTRACT),
             abi=abi,
         )
-        calldata, value = self.get_attestation_calldata(attest_type=attest_type)
         function, arguments = contract.decode_function_input(calldata)
         attestation_payload = arguments['attestationPayload']
         validation_payloads = arguments['validationPayloads']
