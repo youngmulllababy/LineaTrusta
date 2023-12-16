@@ -107,7 +107,7 @@ class Trusta:
         data = self.get_attestation_calldata(attest_type=attest_type)
         user_score, min_score, allowed_to_mint = self.is_allowed_to_mint(attest_type, data)
         if not allowed_to_mint:
-            raise Exception(f'wallet does not meet minimum criteria for mint - \nuser_score: {user_score}\n min_score: {config.ATTESTATION_SCORE[0]}\n max_score: {config.ATTESTATION_SCORE[1]}')
+            raise Exception(f'wallet does not meet minimum criteria for mint - \nuser_score: {user_score}\n min_score: {config.ATTESTATION_SCORE[attest_type][0]}\n max_score: {config.ATTESTATION_SCORE[attest_type][1]}')
         self.wait_for_linea_gwei()
 
         calldata = data['calldata']['data']
